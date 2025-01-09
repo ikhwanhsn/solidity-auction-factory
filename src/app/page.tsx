@@ -5,6 +5,10 @@ import Web3 from "web3";
 import { contractABI } from "../services/abi";
 import { Contract, ContractAbi } from "web3";
 import { shortenAddress } from "@/services/shortenAddress";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+
+dayjs.extend(duration);
 
 declare global {
   interface Window {
@@ -21,7 +25,11 @@ export default function Home() {
   const [beneficiary, setBeneficiary] = useState<string>("");
   const [highestBid, setHighestBid] = useState<string>("");
   const [highestBidder, setHighestBidder] = useState<string>("");
-  const [auctionEndTime, setAuctionEndTime] = useState<Date | null>(null);
+  const [balanceBidder, setBalanceBidder] = useState<string>("");
+  const [auctionEndTime, setAuctionEndTime] = useState<dayjs.Dayjs | null>(
+    null
+  );
+  const [remainingTime, setRemainingTime] = useState<string>("");
   useEffect(() => {
     const initWeb3 = async () => {
       try {
@@ -30,6 +38,9 @@ export default function Home() {
           await window.ethereum.request({ method: "eth_requestAccounts" });
           const accounts = await web3Instance.eth.getAccounts();
           setAccount(accounts[0]);
+          const balance = await web3Instance.eth.getBalance(contractAddress);
+          const balanceInEth = web3Instance.utils.fromWei(balance, "ether");
+          setBalanceBidder(balanceInEth);
 
           const contractInstance = new web3Instance.eth.Contract(
             contractABI,
@@ -47,6 +58,26 @@ export default function Home() {
 
     initWeb3();
   }, []);
+  useEffect(() => {
+    if (auctionEndTime) {
+      const interval = setInterval(() => {
+        const now = dayjs();
+        const diff = auctionEndTime.diff(now);
+
+        const duration = dayjs.duration(diff);
+        const formattedTime = `${duration.days()} days ${duration.hours()} hours ${duration.minutes()} minutes ${duration.seconds()} seconds`;
+
+        setRemainingTime(formattedTime);
+
+        if (duration.asMilliseconds() <= 0) {
+          clearInterval(interval);
+          setRemainingTime("Auction has ended");
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [auctionEndTime]);
   useEffect(() => {
     handleBeneficiary();
     handleHighestBid();
@@ -88,10 +119,10 @@ export default function Home() {
   const handleAuctionEndTime = async () => {
     try {
       if (contract) {
-        const res: number = await contract.methods.auctionEndTime().call();
-        // const date: Date = new Date(res * 1000);
-        // setAuctionEndTime(date);
-        // const readableDate = date.toLocaleString("en-US", { timeZone: "UTC" });
+        const res: BigInt = await contract.methods.auctionEndTime().call();
+        const timestamp = res.toString();
+        const date = dayjs(Number(timestamp) * 1000);
+        setAuctionEndTime(date);
       }
     } catch (error) {
       alert(`Error: ${error}`);
@@ -109,10 +140,15 @@ export default function Home() {
       <p>Account: {shortenAddress(account)}</p>
       <p>Beneficiary: {shortenAddress(beneficiary)}</p>
       <p>Highest Bid: {highestBid} ETH</p>
+      <p>Balance: {balanceBidder} ETH</p>
       <p>Highest Bidder: {shortenAddress(highestBidder)}</p>
-      {/* <p>
-        Auction End Time: {auctionEndTime && auctionEndTime.toLocaleString()}
-      </p> */}
+      {
+        <p>
+          Auction End Time:{" "}
+          {auctionEndTime && auctionEndTime.format("DD/MM/YYYY HH:mm:ss")}
+        </p>
+      }
+      <p>Remaining Time: {remainingTime}</p>
       <button className="btn btn-primary text-white" onClick={handleRefresh}>
         Refresh
       </button>
