@@ -1,0 +1,125 @@
+import Web3 from "web3";
+import { Contract, ContractAbi } from "web3";
+import dayjs from "dayjs";
+
+const handleBeneficiary = async (
+  contract: Contract<ContractAbi> | null,
+  setBeneficiary: React.Dispatch<React.SetStateAction<string>>
+) => {
+  try {
+    if (contract) {
+      const res: string = await contract.methods.beneficiary().call();
+      setBeneficiary(res);
+    }
+  } catch (error) {
+    alert(`Error: ${error}`);
+  }
+};
+const handleHighestBid = async (
+  contract: Contract<ContractAbi> | null,
+  web3: Web3 | null,
+  setHighestBid: React.Dispatch<React.SetStateAction<string>>
+) => {
+  try {
+    if (contract) {
+      const res: string = await contract.methods.highestBid().call();
+      const valueInEth: string = web3?.utils.fromWei(res, "ether") || "";
+      setHighestBid(valueInEth);
+    }
+  } catch (error) {
+    alert(`Error: ${error}`);
+  }
+};
+const handleHighestBidder = async (
+  contract: Contract<ContractAbi> | null,
+  setHighestBidder: React.Dispatch<React.SetStateAction<string>>
+) => {
+  try {
+    if (contract) {
+      const res: string = await contract.methods.highestBidder().call();
+      setHighestBidder(res);
+    }
+  } catch (error) {
+    alert(`Error: ${error}`);
+  }
+};
+const handleAuctionEndTime = async (
+  contract: Contract<ContractAbi> | null,
+  setAuctionEndTime: React.Dispatch<React.SetStateAction<dayjs.Dayjs | null>>
+) => {
+  try {
+    if (contract) {
+      const res: BigInt = await contract.methods.auctionEndTime().call();
+      const timestamp = res.toString();
+      const date = dayjs(Number(timestamp) * 1000);
+      setAuctionEndTime(date);
+    }
+  } catch (error) {
+    alert(`Error: ${error}`);
+  }
+};
+const handleBalanceBidder = async (
+  contractAddress: string,
+  setBalanceBidder: React.Dispatch<React.SetStateAction<string>>
+) => {
+  try {
+    const web3Instance = new Web3(window.ethereum);
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+    const balance = await web3Instance.eth.getBalance(contractAddress);
+    const balanceInEth = web3Instance.utils.fromWei(balance, "ether");
+    setBalanceBidder(balanceInEth);
+  } catch (error) {
+    alert(`Error: ${error}`);
+  }
+};
+const handleBid = async (
+  contract: Contract<ContractAbi> | null,
+  web3: Web3 | null,
+  account: string,
+  highestBid: string,
+  bid: string,
+  handleHighestBid: () => void,
+  handleHighestBidder: () => void,
+  handleRefresh: () => void,
+  setBid: React.Dispatch<React.SetStateAction<string>>
+) => {
+  try {
+    if (contract && web3) {
+      if (Number(bid) <= Number(highestBid)) {
+        alert("Bid must be higher than the highest bid");
+      }
+      if (bid !== "" && Number(bid) > Number(highestBid)) {
+        const bidInWei = web3.utils.toWei(bid, "ether");
+        await contract.methods.bid().send({ from: account, value: bidInWei });
+        handleHighestBid();
+        handleHighestBidder();
+        handleRefresh();
+        setBid("");
+        alert("Bid placed successfully");
+      }
+    }
+  } catch (error) {
+    alert(`Error: ${error}`);
+  }
+};
+const handleRefresh = async (
+  handleBeneficiary: () => void,
+  handleHighestBid: () => void,
+  handleHighestBidder: () => void,
+  handleBalanceBidder: () => void
+) => {
+  handleBeneficiary();
+  handleHighestBid();
+  handleHighestBidder();
+  handleBalanceBidder();
+};
+
+export {
+  handleBeneficiary,
+  handleHighestBid,
+  handleHighestBidder,
+  handleAuctionEndTime,
+  handleBalanceBidder,
+  handleBid,
+  handleRefresh,
+};
