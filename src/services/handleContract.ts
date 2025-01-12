@@ -113,6 +113,39 @@ const handleRefresh = async (
   handleHighestBidder();
   handleBalanceBidder();
 };
+const handleWithdraw = async (
+  myPendingReturns: string,
+  contract: Contract<ContractAbi> | null,
+  account: string
+) => {
+  try {
+    if (myPendingReturns === "0") {
+      alert("Nothing to withdraw");
+    }
+    if (contract && myPendingReturns !== "0") {
+      await contract.methods.withdraw().send({ from: account });
+      alert("Withdrawal successful");
+    }
+  } catch (error) {
+    alert(`Error: ${error}`);
+  }
+};
+const handlePendingReturns = async (
+  contract: Contract<ContractAbi> | null,
+  web3: Web3 | null,
+  account: string,
+  setMyPendingReturns: React.Dispatch<React.SetStateAction<string>>
+) => {
+  try {
+    if (contract) {
+      const res: string = await contract.methods.pendingReturns(account).call();
+      const valueInEth: string = web3?.utils.fromWei(res, "ether") || "";
+      setMyPendingReturns(valueInEth);
+    }
+  } catch (error) {
+    alert(`Error: ${error}`);
+  }
+};
 
 export {
   handleBeneficiary,
@@ -122,4 +155,6 @@ export {
   handleBalanceBidder,
   handleBid,
   handleRefresh,
+  handleWithdraw,
+  handlePendingReturns,
 };

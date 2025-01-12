@@ -14,7 +14,9 @@ import {
   handleBid,
   handleHighestBid,
   handleHighestBidder,
+  handlePendingReturns,
   handleRefresh,
+  handleWithdraw,
 } from "@/services/handleContract";
 
 dayjs.extend(duration);
@@ -25,7 +27,7 @@ declare global {
   }
 }
 
-const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const contractAddress = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
 
 export default function Home() {
   const [account, setAccount] = useState<string>("");
@@ -40,6 +42,7 @@ export default function Home() {
   );
   const [remainingTime, setRemainingTime] = useState<string>("");
   const [bid, setBid] = useState<string>("");
+  const [myPendingReturns, setMyPendingReturns] = useState<string>("");
   useEffect(() => {
     const initWeb3 = async () => {
       try {
@@ -91,93 +94,8 @@ export default function Home() {
     handleHighestBidder(contract, setHighestBidder);
     handleAuctionEndTime(contract, setAuctionEndTime);
     handleBalanceBidder(contractAddress, setBalanceBidder);
+    handlePendingReturns(contract, web3, account, setMyPendingReturns);
   }, [contract]);
-
-  const withdraw = async () => {
-    try {
-    } catch (error) {}
-  };
-
-  // const handleBeneficiary = async () => {
-  //   try {
-  //     if (contract) {
-  //       const res: string = await contract.methods.beneficiary().call();
-  //       setBeneficiary(res);
-  //     }
-  //   } catch (error) {
-  //     alert(`Error: ${error}`);
-  //   }
-  // };
-  // const handleHighestBid = async () => {
-  //   try {
-  //     if (contract) {
-  //       const res: string = await contract.methods.highestBid().call();
-  //       const valueInEth: string = web3?.utils.fromWei(res, "ether") || "";
-  //       setHighestBid(valueInEth);
-  //     }
-  //   } catch (error) {
-  //     alert(`Error: ${error}`);
-  //   }
-  // };
-  // const handleHighestBidder = async () => {
-  //   try {
-  //     if (contract) {
-  //       const res: string = await contract.methods.highestBidder().call();
-  //       setHighestBidder(res);
-  //     }
-  //   } catch (error) {
-  //     alert(`Error: ${error}`);
-  //   }
-  // };
-  // const handleAuctionEndTime = async () => {
-  //   try {
-  //     if (contract) {
-  //       const res: BigInt = await contract.methods.auctionEndTime().call();
-  //       const timestamp = res.toString();
-  //       const date = dayjs(Number(timestamp) * 1000);
-  //       setAuctionEndTime(date);
-  //     }
-  //   } catch (error) {
-  //     alert(`Error: ${error}`);
-  //   }
-  // };
-  // const handleBalanceBidder = async () => {
-  //   try {
-  //     const web3Instance = new Web3(window.ethereum);
-  //     await window.ethereum.request({ method: "eth_requestAccounts" });
-  //     const balance = await web3Instance.eth.getBalance(contractAddress);
-  //     const balanceInEth = web3Instance.utils.fromWei(balance, "ether");
-  //     setBalanceBidder(balanceInEth);
-  //   } catch (error) {
-  //     alert(`Error: ${error}`);
-  //   }
-  // };
-  // const handleBid = async () => {
-  //   try {
-  //     if (contract && web3) {
-  //       if (Number(bid) <= Number(highestBid)) {
-  //         alert("Bid must be higher than the highest bid");
-  //       }
-  //       if (bid !== "" && Number(bid) > Number(highestBid)) {
-  //         const bidInWei = web3.utils.toWei(bid, "ether");
-  //         await contract.methods.bid().send({ from: account, value: bidInWei });
-  //         handleHighestBid();
-  //         handleHighestBidder();
-  //         handleRefresh();
-  //         setBid("");
-  //         alert("Bid placed successfully");
-  //       }
-  //     }
-  //   } catch (error) {
-  //     alert(`Error: ${error}`);
-  //   }
-  // };
-  // const handleRefresh = async () => {
-  //   handleBeneficiary();
-  //   handleHighestBid();
-  //   handleHighestBidder();
-  //   handleBalanceBidder();
-  // };
 
   return (
     <main className="min-h-screen">
@@ -186,6 +104,7 @@ export default function Home() {
       <p>Beneficiary: {shortenAddress(beneficiary) || "0x0000...0000"}</p>
       <p>Highest Bid: {highestBid || "0"} ETH</p>
       <p>Balance: {balanceBidder || "0"} ETH</p>
+      <p>Pending Returns: {myPendingReturns || "0"} ETH</p>
       <p>Highest Bidder: {shortenAddress(highestBidder) || "0x0000...0000"}</p>
       {
         <p>
@@ -230,6 +149,12 @@ export default function Home() {
           Bid
         </button>
       </section>
+      <button
+        className="btn btn-error text-white"
+        onClick={() => handleWithdraw(myPendingReturns, contract, account)}
+      >
+        Withdraw
+      </button>
       <button
         className="btn btn-primary text-white mt-1"
         onClick={() =>

@@ -22,13 +22,6 @@ export const contractABI = [
   },
   {
     inputs: [],
-    name: "auctionEnd",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "AuctionEndAlreadyCalled",
     type: "error",
   },
@@ -36,13 +29,6 @@ export const contractABI = [
     inputs: [],
     name: "AuctionNotYetEnded",
     type: "error",
-  },
-  {
-    inputs: [],
-    name: "bid",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
   },
   {
     inputs: [
@@ -95,14 +81,8 @@ export const contractABI = [
   },
   {
     inputs: [],
-    name: "withdraw",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
+    name: "auctionEnd",
+    outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
@@ -134,6 +114,13 @@ export const contractABI = [
   },
   {
     inputs: [],
+    name: "bid",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "highestBid",
     outputs: [
       {
@@ -156,6 +143,38 @@ export const contractABI = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "pendingReturns",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "withdraw",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];
