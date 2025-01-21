@@ -18,6 +18,7 @@ import {
   handleRefresh,
   handleWithdraw,
 } from "@/services/handleContract";
+import { contractABI2 } from "@/services/abi2";
 
 dayjs.extend(duration);
 
@@ -28,11 +29,13 @@ declare global {
 }
 
 const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const contractAddressFactory = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
 
 export default function Home() {
   const [account, setAccount] = useState<string>("");
   const [web3, setWeb3] = useState<Web3 | null>(null);
   const [contract, setContract] = useState<Contract<ContractAbi> | null>(null);
+
   const [beneficiary, setBeneficiary] = useState<string>("");
   const [highestBid, setHighestBid] = useState<string>("");
   const [highestBidder, setHighestBidder] = useState<string>("");
@@ -43,6 +46,10 @@ export default function Home() {
   const [remainingTime, setRemainingTime] = useState<string>("");
   const [bid, setBid] = useState<string>("");
   const [myPendingReturns, setMyPendingReturns] = useState<string>("");
+  // Contract Factory
+  const [contractFactory, setContractFactory] =
+    useState<Contract<ContractAbi> | null>(null);
+  const [allAuction, setAllAuction] = useState<string[]>([]);
   useEffect(() => {
     const initWeb3 = async () => {
       try {
@@ -56,6 +63,11 @@ export default function Home() {
             contractABI,
             contractAddress
           );
+          const contractFactoryInstance = new web3Instance.eth.Contract(
+            contractABI2,
+            contractAddressFactory
+          );
+          setContractFactory(contractFactoryInstance);
           setWeb3(web3Instance);
           setContract(contractInstance);
         } else {
@@ -96,6 +108,55 @@ export default function Home() {
     handleBalanceBidder(contractAddress, setBalanceBidder);
     handlePendingReturns(contract, web3, account, setMyPendingReturns);
   }, [contract]);
+
+  const handleGetAuction = async () => {
+    try {
+      if (contractFactory) {
+        const res: string[] = await contractFactory.methods
+          .getAuctions()
+          .call();
+        setAllAuction(res);
+      }
+    } catch (error) {
+      alert(`Error: ${error}`);
+    }
+  };
+  const handleCreateAuction = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      if (contractFactory && web3) {
+        const biddingTime = Number(e.currentTarget.time.value);
+        if (isNaN(biddingTime) || biddingTime <= 0) {
+          alert("Please enter a valid bidding time in seconds.");
+          return;
+        }
+        const res = await contractFactory.methods
+          .createAuction(biddingTime)
+          .send({ from: account });
+        alert("Auction created successfully");
+      }
+    } catch (error) {
+      alert(`Error: ${error}`);
+    }
+  };
+  const handleGetSingleAuction = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+    try {
+      if (contractFactory) {
+        const id = Number(e.currentTarget.idAuction.value);
+        if (isNaN(id) || id < 0) {
+          alert("Please enter a valid auction ID.");
+          return;
+        }
+        const res = await contractFactory.methods.auctions(id).call();
+        console.log(res);
+      }
+    } catch (error) {
+      alert(`Error: ${error}`);
+    }
+  };
 
   return (
     <main className="min-h-screen">
@@ -177,6 +238,40 @@ export default function Home() {
       >
         Refresh
       </button>
+      <br />
+      <br />
+      <h1>Contract Factory</h1>
+      <ul>
+        {allAuction.length > 0 &&
+          allAuction.map((auction, index) => <li key={index}>{auction}</li>)}
+        {allAuction.length === 0 && <li>No Auctions</li>}
+      </ul>
+      <button className="btn btn-primary text-white" onClick={handleGetAuction}>
+        Get Auction
+      </button>
+      <form onSubmit={handleCreateAuction}>
+        <input
+          type="text"
+          placeholder="Time"
+          name="time"
+          className="input input-bordered bg-white"
+        />
+        <button className="btn btn-primary text-white" type="submit">
+          Create Auction
+        </button>
+      </form>
+      {/* get single auction */}
+      <form onSubmit={handleGetSingleAuction}>
+        <input
+          type="text"
+          placeholder="Auction ID"
+          name="idAuction"
+          className="input input-bordered bg-white"
+        />
+        <button className="btn btn-primary text-white" type="submit">
+          Get Auction
+        </button>
+      </form>
     </main>
   );
 }

@@ -101,7 +101,7 @@ const handleBid = async (
       }
       if (bid !== "" && Number(bid) > Number(highestBid)) {
         const bidInWei = web3.utils.toWei(bid, "ether");
-        await contract.methods.bid().send({ from: account, value: bidInWei });
+        await contract.methods.bid().send({ value: bidInWei });
         handleHighestBid();
         handleHighestBidder();
         handleRefresh();
