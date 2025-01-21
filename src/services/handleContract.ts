@@ -2,6 +2,7 @@ import Web3 from "web3";
 import { Contract, ContractAbi } from "web3";
 import dayjs from "dayjs";
 
+// handleBeneficiary
 const handleBeneficiary = async (
   contract: Contract<ContractAbi> | null,
   setBeneficiary: React.Dispatch<React.SetStateAction<string>>
@@ -15,6 +16,8 @@ const handleBeneficiary = async (
     alert(`Error: ${error}`);
   }
 };
+
+// handleHighestBid
 const handleHighestBid = async (
   contract: Contract<ContractAbi> | null,
   web3: Web3 | null,
@@ -30,6 +33,8 @@ const handleHighestBid = async (
     alert(`Error: ${error}`);
   }
 };
+
+// handleHighestBidder
 const handleHighestBidder = async (
   contract: Contract<ContractAbi> | null,
   setHighestBidder: React.Dispatch<React.SetStateAction<string>>
@@ -43,6 +48,8 @@ const handleHighestBidder = async (
     alert(`Error: ${error}`);
   }
 };
+
+// handleAuctionEndTime
 const handleAuctionEndTime = async (
   contract: Contract<ContractAbi> | null,
   setAuctionEndTime: React.Dispatch<React.SetStateAction<dayjs.Dayjs | null>>
@@ -58,6 +65,8 @@ const handleAuctionEndTime = async (
     alert(`Error: ${error}`);
   }
 };
+
+// handleBalanceBidder
 const handleBalanceBidder = async (
   contractAddress: string,
   setBalanceBidder: React.Dispatch<React.SetStateAction<string>>
@@ -72,6 +81,8 @@ const handleBalanceBidder = async (
     alert(`Error: ${error}`);
   }
 };
+
+// handleBid
 const handleBid = async (
   contract: Contract<ContractAbi> | null,
   web3: Web3 | null,
@@ -102,17 +113,23 @@ const handleBid = async (
     alert(`Error: ${error}`);
   }
 };
+
+// handleRefresh
 const handleRefresh = async (
   handleBeneficiary: () => void,
   handleHighestBid: () => void,
   handleHighestBidder: () => void,
-  handleBalanceBidder: () => void
+  handleBalanceBidder: () => void,
+  handlePendingReturns: () => void
 ) => {
   handleBeneficiary();
   handleHighestBid();
   handleHighestBidder();
   handleBalanceBidder();
+  handlePendingReturns();
 };
+
+// handleWithdraw
 const handleWithdraw = async (
   myPendingReturns: string,
   contract: Contract<ContractAbi> | null,
@@ -130,6 +147,8 @@ const handleWithdraw = async (
     alert(`Error: ${error}`);
   }
 };
+
+// handlePendingReturns
 const handlePendingReturns = async (
   contract: Contract<ContractAbi> | null,
   web3: Web3 | null,
@@ -147,6 +166,7 @@ const handlePendingReturns = async (
   }
 };
 
+// export all functions
 export {
   handleBeneficiary,
   handleHighestBid,
